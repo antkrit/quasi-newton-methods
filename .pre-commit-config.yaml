@@ -7,15 +7,15 @@ repos:
     -   id: check-yaml
     -   id: check-added-large-files
     -   id: mixed-line-ending
-    -   id: requirements-txt-fixe
     -   id: check-merge-conflict
     -   id: check-docstring-first
 -   repo: https://github.com/hadialqattan/pycln
     rev: v2.1.3
     hooks:
     -   id: pycln
+        entry: pycln
 -   repo: https://github.com/pycqa/isort
-    rev: v5.12.0
+    rev: 5.12.0
     hooks:
     -   id: isort
         entry: isort
@@ -27,12 +27,10 @@ repos:
     rev: 21.10b0
     hooks:
     -   id: black
-        name: black (python39)
         entry: black
         language: system
         types: [ python ]
         exclude: '.*.md|.*.rst'
-        include: '^(methods|tests)/.*$'
         args:
         -   -l 100
 -   repo: local
