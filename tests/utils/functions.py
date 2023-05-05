@@ -20,3 +20,13 @@ def cos(x):
 def cos_derivative(x):
     """Cos derivative."""
     return -np.sin(x)
+
+
+def parabola(x):
+    """Simple parabolic function."""
+    return x**2
+
+
+def parabola_derivative(x):
+    """Parabola derivative."""
+    return 2 * x

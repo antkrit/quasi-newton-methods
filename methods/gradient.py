@@ -59,25 +59,30 @@ def _central_finite_difference(
 
 
 def finite_difference(
-    func: Callable[[np.ndarray], np.ndarray],
     x: np.ndarray,
+    func: Callable[[np.ndarray], np.ndarray],
     eps: float = 1e-8,
     type_: str = "F",
 ) -> np.ndarray:
     """Calculate gradient approximation using finite difference method.
 
     Example:
-
         >>> import numpy as np
-        >>> x = np.array([1, 1])
+
+        Define objective function and its derivative
+
         >>> f = lambda x: np.cos(x)
         >>> df = lambda x: -np.sin(x)
-        >>> np.allclose(finite_difference(f, x), df(x), atol=1e-3)
+
+        Compare finite difference with exact derivative:
+
+        >>> x = np.array([1, 1])
+        >>> np.allclose(finite_difference(x, f), df(x), atol=1e-3)
         True
 
     Args:
-        func: target function
         x: 1d values vector
+        func: target function
         eps (optional): precision. Defaults to 1e-8
         type_ (optional): one of ['F', 'B', 'C'], where 'F' means forward finite difference,
             'B' - backward finite difference, 'C' - central finite difference. Defaults to 'F'.
@@ -89,6 +94,8 @@ def finite_difference(
         ValueError: vector x is not one-dimensional
         ValueError: received unexpected type_ argument
     """
+    x = np.atleast_1d(x)
+
     if x.ndim != 1:
         raise ValueError(f"1d array expected, received: {x.ndim}")
 

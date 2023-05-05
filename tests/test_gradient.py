@@ -18,17 +18,30 @@ def test_finite_difference(f, df, eps, type_):
 
     if type_ == "Invalid":
         with pytest.raises(ValueError):
-            _ = finite_difference(f, x, eps=eps, type_=type_)
+            _ = finite_difference(x, f, eps=eps, type_=type_)
         return
+
+    derivative = finite_difference(x, f, eps=eps, type_=type_)
+
+    assert allclose(derivative, df(x), atol=1e-3)
+
+    x = np.random.randint(0, 10, size=())
+    derivative = finite_difference(x, f, eps=eps, type_=type_)
+
+    assert allclose(derivative, df(x), atol=1e-3)
+
+
+def test_finite_difference_with_different_shapes():
+    """Test function behavior for different x sizes."""
+
+    def f(x):
+        """Objective function."""
+        return x
+
+    with pytest.raises(ValueError):
+        x_3d = np.zeros((2, 2, 2))
+        _ = finite_difference(x_3d, f)
 
     with pytest.raises(ValueError):
         x_2d = np.zeros((2, 2))
-        _ = finite_difference(f, x_2d, eps=eps, type_=type_)
-
-    with pytest.raises(ValueError):
-        x_2d = np.zeros(())
-        _ = finite_difference(f, x_2d, eps=eps, type_=type_)
-
-    derivative = finite_difference(f, x, eps=eps, type_=type_)
-
-    assert allclose(derivative, df(x), atol=1e-3)
+        _ = finite_difference(x_2d, f)
