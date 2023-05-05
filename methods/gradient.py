@@ -58,6 +58,13 @@ def _central_finite_difference(
     return (func(x + eps / 2) - func(x - eps / 2)) / eps
 
 
+FD_TYPES = {
+    "F": _forward_finite_difference,
+    "B": _backward_finite_difference,
+    "C": _central_finite_difference,
+}
+
+
 def finite_difference(
     x: np.ndarray,
     func: Callable[[np.ndarray], np.ndarray],
@@ -99,14 +106,8 @@ def finite_difference(
     if x.ndim != 1:
         raise ValueError(f"1d array expected, received: {x.ndim}")
 
-    types = {
-        "F": _forward_finite_difference,
-        "B": _backward_finite_difference,
-        "C": _central_finite_difference,
-    }
-
-    _finite_difference = types.get(type_, None)
+    _finite_difference = FD_TYPES.get(type_, None)
     if _finite_difference is None:
-        raise ValueError(f"Unknown type {type_} available types: {list(types.keys())}")
+        raise ValueError(f"Unknown type {type_} available types: {list(FD_TYPES.keys())}")
 
     return _finite_difference(func, x, eps=eps)

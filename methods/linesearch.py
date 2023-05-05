@@ -1,11 +1,11 @@
 """Contains linear search methods."""
 import functools
-import warnings
 from typing import Callable
 
 import numpy as np
 
 from methods.gradient import finite_difference
+from methods.warnings import warnings_
 
 # most of the variables in the algorithms have a
 # simplified name that should not make any sense
@@ -112,7 +112,7 @@ def linear_search(
 
         alpha_k_1, alpha_k = alpha_k, _interpolate_bisec(alpha_k, amax)
 
-    warnings.warn("Maximum iteration reached.", RuntimeWarning)
+    warnings_["max-iter"]()
     return _output(alpha_k)
 
 

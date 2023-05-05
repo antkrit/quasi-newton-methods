@@ -5,12 +5,12 @@ from __future__ import annotations
 
 import abc
 import functools
-import warnings
 from typing import Callable
 
 import numpy as np
 
 from methods.gradient import finite_difference
+from methods.warnings import warnings_
 
 
 class Minimizer(abc.ABC):
@@ -57,7 +57,11 @@ class Minimizer(abc.ABC):
 
     @abc.abstractmethod
     def update(
-        self, x: np.ndarray, df: Callable[[np.ndarray], np.ndarray], *args, **kwargs
+        self,
+        x: np.ndarray,
+        df: Callable[[np.ndarray], np.ndarray],
+        *args,
+        **kwargs,
     ) -> np.ndarray:
         """Update step.
 
@@ -82,7 +86,8 @@ class Minimizer(abc.ABC):
     ) -> np.ndarray:
         """Minimize x.
 
-        This method just iterates through
+        This method simply runs iterations to update x. The update logic should
+        be described in the `self.update()` method.
 
         Arguments:
             x: starting point
@@ -108,5 +113,5 @@ class Minimizer(abc.ABC):
 
             np.add(x, self.update(x, df, *args, **kwargs), out=x)
 
-        warnings.warn("Maximum iteration reached.", RuntimeWarning)
+        warnings_["max-iter"]()
         return x
