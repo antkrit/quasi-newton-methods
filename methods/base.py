@@ -32,7 +32,7 @@ class Minimizer(abc.ABC):
             def build(self, input_shape):
                 self.some_var = np.ones(input_shape)
 
-            def update(self, x, df, *args, **kwargs):
+            def update(self, x, f, df, *args, **kwargs):
                 return -0.5 * self.some_var * df(x)
 
     Example:
@@ -45,7 +45,7 @@ class Minimizer(abc.ABC):
         ...         self.some_var = None
         ...     def build(self, input_shape):
         ...         self.some_var = np.ones(input_shape)
-        ...     def update(self, x, df, *args, **kwargs):
+        ...     def update(self, x, f, df, *args, **kwargs):
         ...         return -0.5 * self.some_var * df(x)
 
         Define objective function and its derivative
@@ -77,6 +77,7 @@ class Minimizer(abc.ABC):
     def update(
         self,
         x: np.ndarray,
+        f: Callable[[np.ndarray], np.ndarray],
         df: Callable[[np.ndarray], np.ndarray],
         *args,
         **kwargs,
@@ -85,6 +86,7 @@ class Minimizer(abc.ABC):
 
         Arguments:
             x: current x point
+            f: target function
             df: target function derivative
 
         Returns:
@@ -131,7 +133,7 @@ class Minimizer(abc.ABC):
             if np.linalg.norm(df(x)) < eps:
                 return x
 
-            np.add(x, self.update(x, df, *args, **kwargs), out=x)
+            np.add(x, self.update(x, f, df, *args, **kwargs), out=x)
 
         warnings_["max-iter"]()
         return x

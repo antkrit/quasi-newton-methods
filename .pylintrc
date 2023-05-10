@@ -243,6 +243,8 @@ good-names=i,
            y,
            f,
            df,
+           dx,
+           dy,
            ex,
            Run,
            _
