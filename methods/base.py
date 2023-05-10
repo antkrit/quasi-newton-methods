@@ -169,11 +169,22 @@ class QuasiNewton(Minimizer):
 
         Note:
             Subclasses must call the parent function in their implementation.
+
+        Arguments:
+            x: current x point
+            f: target function
+            df: target function derivative
+            *args: positional arguments to be passed to linear search method
+            **kwargs: keyword arguments to be passed to linear search method
+
+        Returns
+            dx: n by 1 vector, the difference between x_{k+1} and x_k
+            dy: n by 1 vector, the difference between df(x_{k+1}) and df(x_k)
         """
         search_direction = -self.hessian.dot(df(x))
-        alpha, *_ = linear_search(x, search_direction, f, df)
+        alpha, *_ = linear_search(x, search_direction, f, df, *args, **kwargs)
 
-        dx = alpha * search_direction  # x_{k+1}
+        dx = alpha * search_direction  # x_{k+1} - x_{k}
 
         # convert to 2 by 1 vectors
         dy = np.atleast_2d(df(x + dx) - df(x)).T
