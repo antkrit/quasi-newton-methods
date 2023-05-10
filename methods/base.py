@@ -10,6 +10,7 @@ from typing import Callable
 import numpy as np
 
 from methods.gradient import finite_difference
+from methods.linesearch import linear_search
 from methods.warnings import warnings_
 
 
@@ -137,3 +138,45 @@ class Minimizer(abc.ABC):
 
         warnings_["max-iter"]()
         return x
+
+
+class QuasiNewton(Minimizer):
+    """Base quasi-Newton class.
+
+    Quasi-Newton methods is a modification of the well-known Newton method in which the first and
+    second derivatives are used. Instead of computing Hessian afresh at every iteration,
+    we update it in a simple manner to account for the curvature measured during the most
+    recent step.
+    """
+
+    def __init__(self):
+        self.hessian = None
+
+    def build(self, input_shape):
+        self.hessian = np.identity(input_shape[-1])
+
+    def update(
+        self,
+        x: np.ndarray,
+        f: Callable[[np.ndarray], np.ndarray],
+        df: Callable[[np.ndarray], np.ndarray],
+        *args,
+        **kwargs,
+    ) -> tuple:
+        """General quasi-Newton update strategy.
+
+        Finds an alpha that satisfies the Wolfe conditions and returns the values of dx and dy
+
+        Note:
+            Subclasses must call the parent function in their implementation.
+        """
+        search_direction = -self.hessian.dot(df(x))
+        alpha, *_ = linear_search(x, search_direction, f, df)
+
+        dx = alpha * search_direction  # x_{k+1}
+
+        # convert to 2 by 1 vectors
+        dy = np.atleast_2d(df(x + dx) - df(x)).T
+        dx = np.atleast_2d(dx).T
+
+        return dx, dy
