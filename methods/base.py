@@ -16,14 +16,24 @@ from methods.warnings import warnings_
 class Minimizer(abc.ABC):
     """Base minimizer class.
 
-    To implement your own minimizer, you need to define the `self.update()` method
-    to return the value to which the current x needs to be updated. Simple minimizer
-    can be implemented as this::
+    To implement your own minimizer, you need to define:
+
+    - `self.update()` method to return the value to which the current x needs to be updated.
+    - `self.build()` method to initialize the internal variables of the minimizer at runtime
+        based on the size of the input.
+
+    Simple minimizer can be implemented as this::
 
         class GradientDescent(Minimizer):
 
-            def update(x, df):
-                return -0.5 * df(x)
+            def __init__(self):
+                self.some_var = None
+
+            def build(self, input_shape):
+                self.some_var = np.ones(input_shape)
+
+            def update(self, x, df, *args, **kwargs):
+                return -0.5 * self.some_var * df(x)
 
     Example:
         >>> import numpy as np
@@ -31,8 +41,12 @@ class Minimizer(abc.ABC):
         Create some minimizer
 
         >>> class SimpleGradientDescent(Minimizer):
-        ...     def update(self, x, df):
-        ...         return -0.5 * df(x)
+        ...     def __init__(self):
+        ...         self.some_var = None
+        ...     def build(self, input_shape):
+        ...         self.some_var = np.ones(input_shape)
+        ...     def update(self, x, df, *args, **kwargs):
+        ...         return -0.5 * self.some_var * df(x)
 
         Define objective function and its derivative
 
@@ -54,6 +68,10 @@ class Minimizer(abc.ABC):
         >>> np.allclose(min_, [0, 0])
         True
     """
+
+    def build(self, input_shape: tuple) -> None:
+        """Initialize the internal variables."""
+        del input_shape  # not used in the base class implementation
 
     @abc.abstractmethod
     def update(
@@ -106,6 +124,8 @@ class Minimizer(abc.ABC):
 
         x = np.atleast_1d(x)
         x = x.astype(float)
+
+        self.build(x.shape)
 
         for _ in range(maxiter):
             if np.linalg.norm(df(x)) < eps:
