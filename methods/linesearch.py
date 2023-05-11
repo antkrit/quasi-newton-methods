@@ -12,6 +12,101 @@ from methods.warnings import warnings_
 # pylint: disable=invalid-name
 
 
+def backtracking(
+    xk: np.ndarray,
+    pk: np.ndarray,
+    f: Callable[[np.ndarray, ...], np.ndarray],
+    df: Callable[[np.ndarray, ...], np.ndarray] = None,
+    rho: float = 0.5,
+    c: float = 0.001,
+    a0: float = 1,
+    maxiter: int = 10,
+    options: dict = None,
+    **kwargs,
+) -> tuple:
+    """Find x that satisfies Armijo (sufficient decrease) condition.
+
+    Args:
+        xk: starting point.
+        pk: search direction.
+        f: target function
+        df (optional): target function derivative. Use finite difference method if omitted.
+            Defaults to None.
+        rho (optional): float in range (0, 1), the value by which to decrease the alpha. The new
+            alpha at each step will be calculated as rho*alpha. Defaults to 0.5
+        c (optional): float in range (0, 1), hyperparameter for Armijo condition rule.
+            Defaults to 0.001
+        a0 (optional): starting alpha. Defaults to 1.
+        maxiter (optional): maximum number of iterations to perform. Defaults to 10.
+        options (optional): additional kwargs passed to target function. Defaults to None
+        **kwargs: keyword arguments passed to target function derivative
+
+    Returns:
+        alpha: point that satisfies Wolfe conditions.
+        fval: new function value f(xk + alpha*pk).
+        old_fval: old function value f(xk)
+
+    Example:
+        >>> import numpy as np
+
+        Define objective function and it's derivative
+
+        >>> def obj_func(x):
+        ...     return (x**2).sum()
+        >>> def obj_grad(x):
+        ...     return 2*x
+
+        Search for alpha tha satisfy strong Wolfe conditions
+
+        >>> start_point = np.array([1, 1])
+        >>> search_gradient = np.array([-1, -1])
+        >>> backtracking(start_point, search_gradient, obj_func, obj_grad)
+        (1, 0, 2)
+
+        It is also possible not to specify the derivative of the objective function, in which
+        case the finite difference method will be used. You can pass additional arguments to
+        this finite difference function using **kwargs
+
+        >>> backtracking(start_point, search_gradient, obj_func, None, c=0.1, rho=0.2, a0=1)
+        (1, 0, 2)
+
+    References:
+        1. https://optimization.cbe.cornell.edu/index.php?title=Line_search_methods
+    """
+
+    def _output(alpha):
+        """Make sure function returns all the values specified in the docstring."""
+        return alpha, phi(alpha), f(xk)
+
+    def phi(alpha):
+        """Make f function one dimensional."""
+        return f(xk + alpha * pk)
+
+    options = options or {}
+    f = functools.partial(f, **options)
+
+    xk = np.atleast_1d(xk)  # xk must have the `ndim` attribute
+
+    # if df is not provided, then compute finite
+    # difference for the function f
+    df = df or functools.partial(finite_difference, func=f)
+    df = functools.partial(df, **kwargs)
+
+    a = a0
+    for _ in range(1, maxiter):
+        # handle 0d output
+        df_xk = df(xk)
+        df_pk = df_xk.T.dot(pk) if df_xk.ndim >= 1 else df_xk * pk
+
+        if np.all(phi(a) <= f(xk) + c * a * df_pk):
+            return _output(a)
+
+        a *= rho
+
+    warnings_["max-iter"]()
+    return _output(a)
+
+
 def linear_search(
     xk: np.ndarray,
     pk: np.ndarray,
@@ -37,7 +132,7 @@ def linear_search(
             Defaults to 0.9.
         amax (optional): maximum a value. Should be greater than 0. Trial point a1
             will be calculated as (0 + amax)/2. Defaults to 2.
-        maxiter (optional): maximum number of iterations to perform. Defaults to 100.
+        maxiter (optional): maximum number of iterations to perform. Defaults to 10.
         options (optional): additional kwargs passed to target function. Defaults to None
         **kwargs: keyword arguments passed to target function derivative
 
@@ -73,30 +168,29 @@ def linear_search(
     References:
         1. Jorge Nocedal, `Numerical Optimization. Second Edition`, 2006, p.56-62
     """
-    options = options or {}
-    f = functools.partial(f, **options)
 
-    # if df is not provided, then compute finite
-    # difference for the function f
-    if df is None:
-        df = functools.partial(finite_difference, func=f)
-
-    df = functools.partial(df, **kwargs)
+    def _output(alpha):
+        """Make sure function returns all the values specified in the docstring."""
+        return alpha, phi(alpha), f(xk)
 
     def phi(alpha):
-        """Wrap the f function so that alpha is the only argument passed."""
+        """Make f function one dimensional."""
         return f(xk + alpha * pk)
 
     def dphi(alpha):
         """Phi function derivative."""
         return df(xk + alpha * pk)
 
+    options = options or {}
+    f = functools.partial(f, **options)
+
+    # if df is not provided, then compute finite
+    # difference for the function f
+    df = df or functools.partial(finite_difference, func=f)
+    df = functools.partial(df, **kwargs)
+
     alpha_k_1 = 0  # previous step
     alpha_k = _interpolate_bisec(alpha_k_1, amax)
-
-    def _output(alpha):
-        """Make sure function returns all the values specified in the docstring."""
-        return alpha, f(xk + alpha * pk), f(xk)
 
     for _ in range(1, maxiter):
         phi_ak = phi(alpha_k)
