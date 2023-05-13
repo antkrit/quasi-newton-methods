@@ -15,8 +15,8 @@ def test_convergence(obj_method, x):
     """Test convergence of methods."""
     minimize = obj_method()
 
-    min_ = minimize(x, parabola, parabola_derivative, eps=1e-6, maxiter=100)
+    min_ = minimize(x, parabola, parabola_derivative, eps=1e-6, maxiter=100).x
     assert allclose(min_, np.zeros(len(x)), atol=1e-6)
 
-    min_ = minimize(x, parabola, None, eps=1e-6, maxiter=100)
+    min_ = minimize(x, parabola, None, eps=1e-6, maxiter=100).x
     assert allclose(min_, np.zeros(len(x)), atol=1e-6)

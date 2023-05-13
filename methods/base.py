@@ -5,13 +5,13 @@ from __future__ import annotations
 
 import abc
 import functools
+from dataclasses import dataclass
 from typing import Callable
 
 import numpy as np
 
 from methods.gradient import finite_difference
 from methods.linesearch import linear_search
-from methods.warnings import warnings_
 
 
 class Minimizer(abc.ABC):
@@ -60,12 +60,12 @@ class Minimizer(abc.ABC):
 
         >>> x = np.array([0.5, 0.5])
         >>> gradient_descent = SimpleGradientDescent()
-        >>> gradient_descent(x, obj_func, obj_grad, maxiter=1)
+        >>> gradient_descent(x, obj_func, obj_grad, maxiter=1).x
         array([0., 0.])
 
         Or using finite difference
 
-        >>> min_ = gradient_descent(x, obj_func, None, maxiter=1)
+        >>> min_ = gradient_descent(x, obj_func, None, maxiter=1).x
         >>> np.allclose(min_, [0, 0])
         True
     """
@@ -104,7 +104,7 @@ class Minimizer(abc.ABC):
         eps: float = 1e-8,
         maxiter: int = 100,
         **kwargs,
-    ) -> np.ndarray:
+    ) -> MinimizeResult:
         """Minimize x.
 
         This method simply runs iterations to update x. The update logic should
@@ -120,7 +120,9 @@ class Minimizer(abc.ABC):
             **kwargs: keyword arguments passed to update function
 
         Returns:
-            Minimum of the target function.
+            x: result of the minimization
+            success: whether the result converged in the allotted number of iterations
+            nit: the number of iterations made
         """
         if df is None:
             df = functools.partial(finite_difference, func=f)
@@ -130,14 +132,22 @@ class Minimizer(abc.ABC):
 
         self.build(x.shape)
 
-        for _ in range(maxiter):
+        for i in range(maxiter):
             if np.linalg.norm(df(x)) < eps:
-                return x
+                return MinimizeResult(x, success=True, nit=i)
 
             np.add(x, self.update(x, f, df, *args, **kwargs), out=x)
 
-        warnings_["max-iter"]()
-        return x
+        return MinimizeResult(x, success=False, nit=maxiter)
+
+
+@dataclass
+class MinimizeResult:
+    """The result of the minimizer."""
+
+    x: np.ndarray
+    success: bool
+    nit: int
 
 
 class QuasiNewton(Minimizer):
@@ -182,8 +192,8 @@ class QuasiNewton(Minimizer):
             dy: n by 1 vector, the difference between df(x_{k+1}) and df(x_k)
         """
         search_direction = -self.hessian.dot(df(x))
-        alpha, *_ = linear_search(x, search_direction, f, df, *args, **kwargs)
 
+        alpha, *_ = linear_search(x, search_direction, f, df, *args, **kwargs)
         dx = alpha * search_direction  # x_{k+1} - x_{k}
 
         # convert to 2 by 1 vectors

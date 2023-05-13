@@ -27,14 +27,14 @@ def test_base_minimizer(mocker):
 
     minimizer = Minimizer()
     assert np.array_equal(
-        minimizer(np.array([1, 1]), obj_func, obj_grad, maxiter=1),
+        minimizer(np.array([1, 1]), obj_func, obj_grad, maxiter=1).x,
         [0.5, 0.5],
     )
     assert np.array_equal(
-        minimizer(np.array([1, 1]), obj_func, obj_grad, maxiter=2),
+        minimizer(np.array([1, 1]), obj_func, obj_grad, maxiter=2).x,
         [0, 0],
     )
     assert np.array_equal(
-        minimizer(np.array([1, 1]), obj_func, None, maxiter=2),
+        minimizer(np.array([1, 1]), obj_func, None, maxiter=2).x,
         [0, 0],
     )

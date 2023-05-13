@@ -18,7 +18,7 @@ class DFP(QuasiNewton):
         Initialize minimizer and minimize point x
 
         >>> minimize = DFP()
-        >>> min_ = minimize(np.array([1, -1.5]), obj_func, None, maxiter=100, eps=1e-6)
+        >>> min_ = minimize(np.array([1, -1.5]), obj_func, None, maxiter=100, eps=1e-6).x
         >>> np.allclose(min_, [0, 0], atol=1e-6)
         True
 
