@@ -192,10 +192,12 @@ def linear_search(
     alpha_k_1 = 0  # previous step
     alpha_k = _interpolate_bisec(alpha_k_1, amax)
 
-    for _ in range(1, maxiter):
+    for i in range(1, maxiter):
         phi_ak = phi(alpha_k)
-        if np.all(phi_ak > phi(0) + c1 * alpha_k * dphi(0)) or np.all(phi_ak >= phi(alpha_k_1)):
-            return _output(_zoom(alpha_k, alpha_k_1, phi, dphi, c1, c2))
+        if np.all(phi_ak > phi(0) + c1 * alpha_k * dphi(0)) or (
+            np.all(phi_ak >= phi(alpha_k_1)) and i > 1
+        ):
+            return _output(_zoom(alpha_k_1, alpha_k, phi, dphi, c1, c2))
 
         dphi_ak = dphi(alpha_k)
         if np.all(np.abs(dphi_ak) <= -c2 * dphi(0)):
@@ -204,7 +206,7 @@ def linear_search(
         if np.all(dphi_ak >= 0):
             return _output(_zoom(alpha_k, alpha_k_1, phi, dphi, c1, c2))
 
-        alpha_k_1, alpha_k = alpha_k, _interpolate_bisec(alpha_k, amax)
+        alpha_k_1, alpha_k = alpha_k, alpha_k + 0.5 * (amax - alpha_k)
 
     warnings_["max-iter"]()
     return _output(alpha_k)
@@ -247,7 +249,7 @@ def _zoom(
         xk = _interpolate_bisec(xlo, xhi)
         f_xk = f(xk)
 
-        if np.all(f_xk > f(0) + c1 * xk * df(0)) or np.all(f_xk > f(xlo)):
+        if np.all(f_xk > f(0) + c1 * xk * df(0)) or np.all(f_xk >= f(xlo)):
             xhi = xk
         else:
             df_xk = df(xk)
