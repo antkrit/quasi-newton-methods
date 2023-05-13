@@ -13,7 +13,7 @@ class Broyden(QuasiNewton):
         Define objective function
 
         >>> def obj_func(x):
-        ...     return x**2
+        ...     return (x**2).sum(axis=0)
 
         Initialize minimizer and minimize point x
 

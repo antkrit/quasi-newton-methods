@@ -4,13 +4,13 @@ import pytest
 
 from methods.gradient import finite_difference
 from tests.utils.array import allclose
-from tests.utils.functions import cos, cos_derivative, sigmoid, sigmoid_derivative
+from tests.utils.functions import cos, cos_grad, parabola, parabola_grad
 
 
 @pytest.mark.parametrize("type_", ["F", "B", "C", "Invalid"])
 @pytest.mark.parametrize("eps", [1e-3, 1e-5, 1e-8])
 @pytest.mark.parametrize(
-    "f, df", [(sigmoid, sigmoid_derivative), (cos, cos_derivative)], ids=("sigmoid", "cos")
+    "f, df", [(parabola, parabola_grad), (cos, cos_grad)], ids=("parabola", "cos")
 )
 def test_finite_difference(f, df, eps, type_):
     """Test finite difference function with different parameters."""

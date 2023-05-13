@@ -103,7 +103,7 @@ def backtracking(
 
         a *= rho
 
-    warnings_["max-iter"]()
+    warnings_["max-iter"](method_name="backtracking")
     return _output(a)
 
 
@@ -208,7 +208,7 @@ def linear_search(
 
         alpha_k_1, alpha_k = alpha_k, alpha_k + 0.5 * (amax - alpha_k)
 
-    warnings_["max-iter"]()
+    warnings_["max-iter"](method_name="linear-search")
     return _output(alpha_k)
 
 

@@ -4,6 +4,14 @@ from typing import Callable
 import numpy as np
 
 
+def _eps_matrix(size, eps):
+    """Generate epsilon matrix to match x shape."""
+    identity = np.eye(size)
+    np.fill_diagonal(identity, np.tile(eps, size))
+
+    return identity
+
+
 def _forward_finite_difference(
     func: Callable[[np.ndarray], np.ndarray],
     x: np.ndarray,
@@ -19,7 +27,9 @@ def _forward_finite_difference(
     Returns:
         Approximate gradient
     """
-    return (func(x + eps) - func(x)) / eps
+    eps_matrix = _eps_matrix(len(x), eps)
+    x = x + np.zeros_like(eps_matrix)  # convert x to the appropriate shape
+    return (func(x + eps_matrix) - func(x)) / eps
 
 
 def _backward_finite_difference(
@@ -37,7 +47,9 @@ def _backward_finite_difference(
     Returns:
         Approximate gradient
     """
-    return (func(x) - func(x - eps)) / eps
+    eps_matrix = _eps_matrix(len(x), eps)
+    x = x + np.zeros_like(eps_matrix)  # convert x to the appropriate shape
+    return (func(x) - func(x - eps_matrix)) / eps
 
 
 def _central_finite_difference(
@@ -55,7 +67,8 @@ def _central_finite_difference(
     Returns:
         Approximate gradient
     """
-    return (func(x + eps / 2) - func(x - eps / 2)) / eps
+    eps_matrix = _eps_matrix(len(x), eps)
+    return (func(x + eps_matrix / 2) - func(x - eps_matrix / 2)) / eps
 
 
 FD_TYPES = {
@@ -78,7 +91,7 @@ def finite_difference(
 
         Define objective function and its derivative
 
-        >>> f = lambda x: np.cos(x)
+        >>> f = lambda x: np.cos(x).sum(axis=0)
         >>> df = lambda x: -np.sin(x)
 
         Compare finite difference with exact derivative:
@@ -101,7 +114,7 @@ def finite_difference(
         ValueError: vector x is not one-dimensional
         ValueError: received unexpected type_ argument
     """
-    x = np.atleast_1d(x)
+    x = np.atleast_1d(x)  # convert scalars to 1d array
 
     if x.ndim != 1:
         raise ValueError(f"1d array expected, received: {x.ndim}")

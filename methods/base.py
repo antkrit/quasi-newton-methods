@@ -52,7 +52,7 @@ class Minimizer(abc.ABC):
         Define objective function and its derivative
 
         >>> def obj_func(x):
-        ...     return x**2
+        ...     return (x**2).sum(axis=0)
         >>> def obj_grad(x):
         ...     return 2*x
 
