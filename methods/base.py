@@ -80,6 +80,7 @@ class Minimizer(abc.ABC):
         x: np.ndarray,
         f: Callable[[np.ndarray], np.ndarray],
         df: Callable[[np.ndarray], np.ndarray],
+        i: int,
         *args,
         **kwargs,
     ) -> np.ndarray:
@@ -89,6 +90,7 @@ class Minimizer(abc.ABC):
             x: current x point
             f: target function
             df: target function derivative
+            i: current iteration
 
         Returns:
             The value to update x to
@@ -136,7 +138,7 @@ class Minimizer(abc.ABC):
             if np.linalg.norm(df(x)) < eps:
                 return MinimizeResult(x, success=True, nit=i)
 
-            np.add(x, self.update(x, f, df, *args, **kwargs), out=x)
+            np.add(x, self.update(x, f, df, i, *args, **kwargs), out=x)
 
         return MinimizeResult(x, success=False, nit=maxiter)
 
@@ -170,6 +172,7 @@ class QuasiNewton(Minimizer):
         x: np.ndarray,
         f: Callable[[np.ndarray], np.ndarray],
         df: Callable[[np.ndarray], np.ndarray],
+        i: int,
         *args,
         **kwargs,
     ) -> tuple:
@@ -184,6 +187,7 @@ class QuasiNewton(Minimizer):
             x: current x point
             f: target function
             df: target function derivative
+            i: current iteration
             *args: positional arguments to be passed to linear search method
             **kwargs: keyword arguments to be passed to linear search method
 

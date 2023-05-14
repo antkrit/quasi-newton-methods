@@ -123,4 +123,4 @@ def finite_difference(
     if _finite_difference is None:
         raise ValueError(f"Unknown type {type_} available types: {list(FD_TYPES.keys())}")
 
-    return _finite_difference(func, x, eps=eps)
+    return _finite_difference(func, np.round(x, 9), eps=eps)
