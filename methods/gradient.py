@@ -27,9 +27,8 @@ def _forward_finite_difference(
     Returns:
         Approximate gradient
     """
-    eps_matrix = _eps_matrix(len(x), eps)
-    x = x + np.zeros_like(eps_matrix)  # convert x to the appropriate shape
-    return (func(x + eps_matrix) - func(x)) / eps
+    xeps = x + _eps_matrix(len(x), eps)
+    return np.fromiter(((func(xe) - func(x)) / eps for xe in xeps), dtype=float)
 
 
 def _backward_finite_difference(
@@ -47,9 +46,8 @@ def _backward_finite_difference(
     Returns:
         Approximate gradient
     """
-    eps_matrix = _eps_matrix(len(x), eps)
-    x = x + np.zeros_like(eps_matrix)  # convert x to the appropriate shape
-    return (func(x) - func(x - eps_matrix)) / eps
+    xeps = x - _eps_matrix(len(x), eps)
+    return np.fromiter(((func(x) - func(xe)) / eps for xe in xeps), dtype=float)
 
 
 def _central_finite_difference(
@@ -67,8 +65,8 @@ def _central_finite_difference(
     Returns:
         Approximate gradient
     """
-    eps_matrix = _eps_matrix(len(x), eps)
-    return (func(x + eps_matrix / 2) - func(x - eps_matrix / 2)) / eps
+    eps_matrix = _eps_matrix(len(x), eps) / 2
+    return np.fromiter(((func(x + e) - func(x - e)) / eps for e in eps_matrix), dtype=float)
 
 
 FD_TYPES = {
@@ -91,14 +89,14 @@ def finite_difference(
 
         Define objective function and its derivative
 
-        >>> f = lambda x: np.cos(x).sum(axis=0)
-        >>> df = lambda x: -np.sin(x)
+        >>> f = lambda x: (x**2).sum(axis=0)
+        >>> df = lambda x: 2*x
 
         Compare finite difference with exact derivative:
 
         >>> x = np.array([1, 1])
-        >>> np.allclose(finite_difference(x, f), df(x), atol=1e-3)
-        True
+        >>> finite_difference(x, f, eps=1e-6, type_='C')
+        array([2., 2.])
 
     Args:
         x: 1d values vector
